@@ -29,39 +29,52 @@
 
 # 1. Clients
 
-Clients, like the `DynamoDbClient` are the most direct way of communicating with AWS services. See [7. High-Level Libraries](#7-high-level-libraries) for the status of high-level libraries like S3 Transfer Manager, the Dynamo DB Mapper, S3 Encryption Client and waiters.
-
-In 2.0, the following changes have been made to the clients:
-
-1. Clients can no longer be mutated.
-2. Clients can no longer be created by their default constructor. The static `create` or `builder` methods must be used instead: `new AmazonDynamoDBClient` is now `DynamoDbClient.create` and `AmazonDynamoDBClient.builder` is now `DynamoDbClient.builder`.
-3. Client builders no longer contain static methods. The static methods on the clients must be used: `AmazonDynamoDBClientBuilder.defaultClient` is now `DynamoDbClient.create` and `AmazonDynamoDBClientBuilder.standard` is now `DynamoDbClient.builder`.
-4. Client classes have been renamed. See [6.3. Client Names](#63-client-names) for the 2.0-equivalent client names.
-5. Async clients now use non-blocking IO.
-6. Async operations now return `CompletableFuture`.
-7. Async clients now use an internal executor only for calling `complete` on the `CompletableFuture` and retries.
+* allows
+  * -- communicating with -- AWS services
+* _Example:_ `DynamoDbClient`
+* changes about clients | v2.0
+  1. Clients -- can NO longer be -- mutated.
+  2. Clients -- can NO longer be -- created by their default constructor
+     1. `new AmazonDynamoDBClient` -- must be replaced by -- `DynamoDbClient.create`
+     2. `AmazonDynamoDBClient.builder` -- must be replaced by -- `DynamoDbClient.builder`
+  3. Client builders -- NO longer contain -- static methods
+     1. `AmazonDynamoDBClientBuilder.defaultClient` -- must be replaced by -- `DynamoDbClient.create`
+     2. `AmazonDynamoDBClientBuilder.standard` -- must be replaced by -- `DynamoDbClient.builder`
+  4. [Client classes have been renamed](#63-client-names)
+  5. Async clients now use non-blocking IO.
+  6. Async operations now return `CompletableFuture`.
+  7. Async clients | calling `complete` | `CompletableFuture` and retries -- now use an -- internal executor .
 
 ## 1.1. Client Creation Defaults
 
-In 2.0, the following changes have been made to the default client creation logic:
-
-1. The default credential provider chain for S3 no longer includes anonymous credentials. Anonymous access to S3 must be specified manually using the `AnonymousCredentialsProvider`.
-2. The following environment variables related to default client creation have been changed:
-   1. `AWS_CBOR_DISABLED` is now `CBOR_ENABLED`
-   2. `AWS_ION_BINARY_DISABLE` is now `BINARY_ION_ENABLED`
-3. The following system properties related to default client creation have been changed:
-   1. `com.amazonaws.sdk.disableEc2Metadata` is now `aws.disableEc2Metadata`.
-   2. `com.amazonaws.sdk.ec2MetadataServiceEndpointOverride` is now `aws.ec2MetadataServiceEndpoint`.
-   3. `com.amazonaws.sdk.disableCbor` is now `aws.cborEnabled`.
-   4. `com.amazonaws.sdk.disableIonBinary` is now `aws.binaryIonEnabled`.
-   5. The following system properties no longer supported: `com.amazonaws.sdk.disableCertChecking`, `com.amazonaws.sdk.enableDefaultMetrics`, `com.amazonaws.sdk.enableThrottledRetry`, `com.amazonaws.regions.RegionUtils.fileOverride`, `com.amazonaws.regions.RegionUtils.disableRemote`, `com.amazonaws.services.s3.disableImplicitGlobalClients`, `com.amazonaws.sdk.enableInRegionOptimizedMode`
-4. Loading region configuration from a custom `endpoints.json` file is no longer supported.
-5. The default credentials logic has been modified. See `com.amazonaws.auth.DefaultAWSCredentialsProviderChain` changes below for more information.
-6. Profile file format has changed to more closely match the CLI's behavior. See [5. Profile File Changes](#5-profile-file-changes).
+* changes about default client creation logic | v2.0
+  1. default credential provider chain for S3 NO longer includes anonymous credentials
+     1. if you want anonymous access to S3 -> specify manually -- via -- `AnonymousCredentialsProvider`.
+  2. environment variables / -- related to -- default client creation
+     1. `AWS_CBOR_DISABLED` -- is replaced by -- `CBOR_ENABLED`
+     2. `AWS_ION_BINARY_DISABLE` -- is replaced by -- `BINARY_ION_ENABLED`
+  3. system properties / -- related to -- default client creation
+     1. `com.amazonaws.sdk.disableEc2Metadata` -- is replaced by -- `aws.disableEc2Metadata`.
+     2. `com.amazonaws.sdk.ec2MetadataServiceEndpointOverride` -- is replaced by -- `aws.ec2MetadataServiceEndpoint`.
+     3. `com.amazonaws.sdk.disableCbor` -- is replaced by -- `aws.cborEnabled`.
+     4. `com.amazonaws.sdk.disableIonBinary` -- is replaced by -- `aws.binaryIonEnabled`.
+     5. NO longer supported
+        1. `com.amazonaws.sdk.disableCertChecking`,
+        2. `com.amazonaws.sdk.enableDefaultMetrics`,
+        3. `com.amazonaws.sdk.enableThrottledRetry`,
+        4. `com.amazonaws.regions.RegionUtils.fileOverride`,
+        5. `com.amazonaws.regions.RegionUtils.disableRemote`,
+        6. `com.amazonaws.services.s3.disableImplicitGlobalClients`,
+        7. `com.amazonaws.sdk.enableInRegionOptimizedMode`
+  4. Loading region configuration -- from a -- custom `endpoints.json` file is NO longer supported.
+  5. default credentials logic has been modified
+     1. `com.amazonaws.auth.DefaultAWSCredentialsProviderChain` 
+  6. Profile file format -- match more closely the -- CLI's behavior
+     1. [5. Profile File Changes](#5-profile-file-changes)
 
 ## 1.2. AWS Client Configuration: Custom Regions, Credentials and Endpoints
 
-In 2.0, regions, credentials and endpoints must be specified using the client builder.
+* -- must be specified via -- client builder
 
 | Setting     | 1.x (Client)                                                                                  | 1.x (Builder)                                                                                                                                  | 2.0                                                                                                         |
 |-------------|-----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
@@ -71,33 +84,38 @@ In 2.0, regions, credentials and endpoints must be specified using the client bu
 
 ### 1.2.1. Client Regions
 
-In 2.0, the following changes have been made related to regions:
-
-1. When using a service that does not currently have region-specific endpoints, you must use `Region.AWS_GLOBAL` or `Region.AWS_CN_GLOBAL` instead of a region-specific endpoint.
+1. if service / NOT currently have region-specific endpoints -> use `Region.AWS_GLOBAL` or `Region.AWS_CN_GLOBAL`
 2. `com.amazonaws.regions.Regions` changes:
-    1. This class has been replaced with `software.amazon.awssdk.regions.Region`.
-    2. `Regions.fromName` is now `Region.of`.
-    3. `Regions.getName` is now `Region.id`.
-    4. The following `Regions` methods and fields are no longer supported: `DEFAULT_REGION`, `getDescription`, `getCurrentRegion`, `name`.
+    1. -- replaced with -- `software.amazon.awssdk.regions.Region`.
+    2. `Regions.fromName` -- replaced with -- `Region.of`.
+    3. `Regions.getName` -- replaced with -- `Region.id`.
+    4. `Regions`'s methods and fields NO longer supported:
+       1. `DEFAULT_REGION`,
+       2. `getDescription`,
+       3. `getCurrentRegion`,
+       4. `name`
 3. `com.amazonaws.regions.Region` changes:
     1. For region identification:
-        1. This class has been replaced with `software.amazon.awssdk.regions.Region`, created with `Region.of`.
-        2. `Region.getName` is now `Region.id`.
+        1. -- replaced with -- `software.amazon.awssdk.regions.Region` / -- created with -- `Region.of`.
+        2. `Region.getName` -- replaced with -- `Region.id`.
     2. For region metadata:
-        1. This class has been replaced with `software.amazon.awssdk.regions.RegionMetadata`, created with `RegionMetadata.of`.
-        2. `Region.getName` is now `RegionMetadata.name`.
-        3. `Region.getDomain` is now `RegionMetadata.domain`.
-        4. `Region.getPartition` is now `RegionMetadata.partition`.
+        1. -- replaced with -- `software.amazon.awssdk.regions.RegionMetadata` / -- created with -- `RegionMetadata.of`.
+        2. `Region.getName` -- replaced with -- `RegionMetadata.name`.
+        3. `Region.getDomain` -- replaced with -- `RegionMetadata.domain`.
+        4. `Region.getPartition` -- replaced with -- `RegionMetadata.partition`.
     3. For service metadata:
-        1. This class has been replaced with `software.amazon.awssdk.regions.ServiceMetadata`, created by calling `ServiceMetadata.of` (or the `serviceMetadata` method on any service client).
-        2. `Region.getServiceEndpoint` is now `ServiceMetadata.endpointFor(Region)`.
-        3. `Region.isServiceSupported` is now `ServiceMetadata.regions().contains(Region)`.
-    4. The following `Region` methods are no longer supported: `hasHttpsEndpoint`, `hasHttpEndpoint`, `getAvailableEndpoints`, `createClient`.
+        1. -- replaced with -- `software.amazon.awssdk.regions.ServiceMetadata`, created by calling `ServiceMetadata.of` (or the `serviceMetadata` method on any service client).
+        2. `Region.getServiceEndpoint` -- replaced with -- `ServiceMetadata.endpointFor(Region)`.
+        3. `Region.isServiceSupported` -- replaced with -- `ServiceMetadata.regions().contains(Region)`.
+    4. `Region` 's methods are NO longer supported:
+        1. `hasHttpsEndpoint`,
+        2. `hasHttpEndpoint`,
+        3. `getAvailableEndpoints`,
+        4. `createClient`.
 
-### 1.2.2. Client Credentials
+### 1.2.2. Client Credentials Providers
 
-In 2.0, the following changes have been made related to the credentials providers:
-
+* TODO:
 1. `com.amazonaws.auth.AWSCredentialsProvider` changes:
     1. This class has been replaced with `software.amazon.awssdk.auth.credentials.AwsCredentialsProvider`.
     2. `AWSCredentialsProvider.getCredentials` is now `AwsCredentialsProvider.resolveCredentials`.
