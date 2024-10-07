@@ -6,11 +6,10 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-111-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-The **AWS SDK for Java 2.0** is a rewrite of 1.0 with some great new features. As with version 1.0,
-it enables you to easily work with [Amazon Web Services][aws] but also includes features like
-non-blocking IO and pluggable HTTP implementation to further customize your applications. You can
-get started in minutes using ***Maven*** or any build system that supports MavenCentral as an
-artifact source.
+* 👁️rewrite of 1.0 + new features 👁️
+  * new features
+    * non-blocking IO
+    * pluggable HTTP implementation -> further customize your applications
 
 * [SDK Homepage][sdk-website]
 * [1.11 to 2.0 Changelog](docs/LaunchChangelog.md)
@@ -27,22 +26,24 @@ artifact source.
 
 #### Sign up for AWS ####
 
-Before you begin, you need an AWS account. Please see the [Sign Up for AWS][docs-signup] section of
-the developer guide for information about how to create an AWS account and retrieve your AWS
-credentials.
+* requirements
+  * AWS account
+    * [Sign Up for AWS][docs-signup]
 
 #### Minimum requirements ####
 
-To run the SDK you will need **Java 1.8+**. For more information about the requirements and optimum
-settings for the SDK, please see the [Installing a Java Development Environment][docs-java-env]
-section of the developer guide.
+* **Java 1.8+**
+  * [AWS SDK Java v2, Developer guide, Installing a Java Development Environment][docs-java-env]
 
+---
 ## Using the SDK
 
-The recommended way to use the AWS SDK for Java in your project is to consume it from Maven Central. 
+* consume it -- from -- Maven Central 
+  * recommended way to use  
 
 #### Importing the BOM ####
 
+* TODO:
 To automatically manage module versions (currently all modules have the same version, but this may not always be the case) we recommend you use the [Bill of Materials][bom] import as follows:
 
 ```xml
@@ -108,12 +109,15 @@ You can import the whole SDK into your project (includes *ALL* services). Please
 
 See the [Set up the AWS SDK for Java][docs-setup] section of the developer guide for more usage information.
 
+---
+
 ## New Features for 2.0
 
 * Provides a way to plug in your own HTTP implementation.
 
 * Provides first class support for non-blocking IO in Async clients.
 
+---
 ## Building From Source
 
 Once you check out the code from GitHub, you can build it using the following commands.
@@ -135,23 +139,27 @@ Windows:
 ./mvnw.cmd clean install
 ```
 
+---
 ## Sample Code
 You can find sample code for v2 in the following places:
 
 * [aws-doc-sdk-examples] repo.
 * Integration tests in this repo. They are located in the `it` directory under each service module, eg: [s3-integration-tests]
 
+---
 ## Maintenance and Support for SDK Major Versions
 For information about maintenance and support for SDK major versions and their underlying dependencies, see the following in the AWS SDKs and Tools Reference Guide:
 
 * [AWS SDKs and Tools Maintenance Policy][maintenance-policy]
 * [AWS SDKs and Tools Version Support Matrix][version-matrix]
 
+---
 ## Maintenance and Support for Java Versions
 
 We maintain full support on Long-Term Support(LTS) releases: Java 8, Java 11, Java 17, and Java 21. Note that there 
 may be individual features in newer releases that are not supported, because the SDK must be compatible with Java 8.
 
+---
 ## Giving Feedback
 We need your help in making this SDK great. Please participate in the community and contribute to this effort by submitting issues, participating in discussion forums and submitting pull requests through the following channels:
 
@@ -181,6 +189,7 @@ We need your help in making this SDK great. Please participate in the community 
 [maintenance-policy]: https://docs.aws.amazon.com/credref/latest/refdocs/maint-policy.html
 [version-matrix]: https://docs.aws.amazon.com/credref/latest/refdocs/version-support-matrix.html
 
+---
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
