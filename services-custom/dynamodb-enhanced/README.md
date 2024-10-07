@@ -1,17 +1,14 @@
 ## Overview
 
-Mid-level DynamoDB mapper/abstraction for Java using the v2 AWS SDK.
+* == Mid-level DynamoDB mapper/abstraction -- for -- AWS SDK Java v2
 
 ## Getting Started
-All the examples below use a fictional Customer class. This class is
-completely made up and not part of this library. Any search or key
-values used are also completely arbitrary.
+
+* ALL the examples below use a fictional "Customer" class
 
 ### Initialization
-1. Create or use a java class for mapping records to and from the
-   database table. At a minimum you must annotate the class so that
-   it can be used as a DynamoDb bean, and also the property that
-   represents the primary partition key of the table. Here's an example:-
+1. ".java" / map records <- to & from -> database table
+
    ```java
    @DynamoDbBean
    public class Customer {
@@ -41,66 +38,69 @@ values used are also completely arbitrary.
    }
    ```
    
-2. Create a TableSchema for your class. For this example we are using a static constructor method on TableSchema that 
-   will scan your annotated class and infer the table structure and attributes :
-   ```java
-   static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA = TableSchema.fromClass(Customer.class);
-   ```
+2. ways to create a `TableSchema` for your class / 
+   1. -- via -- static constructor
+      1. scan your annotated class
+      2. infer the table structure & attributes
+      
+         ```java
+         // 
+         static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA = TableSchema.fromClass(Customer.class);
+         ```
+   2. declare directly the schema
+      1. 👁️-> class does NOT need to be annotated 👁️
+            
+         ```java
+            static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
+              TableSchema.builder(Customer.class)
+                .newItemSupplier(Customer::new)
+                .addAttribute(String.class, a -> a.name("account_id")
+                                                  .getter(Customer::getAccountId)
+                                                  .setter(Customer::setAccountId)
+                                                  .tags(primaryPartitionKey()))
+                .addAttribute(Integer.class, a -> a.name("sub_id")
+                                                   .getter(Customer::getSubId)
+                                                   .setter(Customer::setSubId)
+                                                   .tags(primarySortKey()))
+                .addAttribute(String.class, a -> a.name("name")
+                                                  .getter(Customer::getName)
+                                                  .setter(Customer::setName)
+                                                  .tags(secondaryPartitionKey("customers_by_name")))
+                .addAttribute(Instant.class, a -> a.name("created_date")
+                                                   .getter(Customer::getCreatedDate)
+                                                   .setter(Customer::setCreatedDate)
+                                                   .tags(secondarySortKey("customers_by_date"),
+                                                         secondarySortKey("customers_by_name")))
+                .build();
+         ```
    
-   If you would prefer to skip the slightly costly bean inference for a faster solution, you can instead declare your 
-   schema directly and let the compiler do the heavy lifting. If you do it this way, your class does not need to follow
-   bean naming standards nor does it need to be annotated. This example is equivalent to the bean example : 
-   ```java
-   static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
-     TableSchema.builder(Customer.class)
-       .newItemSupplier(Customer::new)
-       .addAttribute(String.class, a -> a.name("account_id")
-                                         .getter(Customer::getAccountId)
-                                         .setter(Customer::setAccountId)
-                                         .tags(primaryPartitionKey()))
-       .addAttribute(Integer.class, a -> a.name("sub_id")
-                                          .getter(Customer::getSubId)
-                                          .setter(Customer::setSubId)
-                                          .tags(primarySortKey()))
-       .addAttribute(String.class, a -> a.name("name")
-                                         .getter(Customer::getName)
-                                         .setter(Customer::setName)
-                                         .tags(secondaryPartitionKey("customers_by_name")))
-       .addAttribute(Instant.class, a -> a.name("created_date")
-                                          .getter(Customer::getCreatedDate)
-                                          .setter(Customer::setCreatedDate)
-                                          .tags(secondarySortKey("customers_by_date"),
-                                                secondarySortKey("customers_by_name")))
-       .build();
-   ```
-   
-3. Create a DynamoDbEnhancedClient object that you will use to repeatedly
-   execute operations against all your tables :- 
-   ```java
-   DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
-                                                                 .dynamoDbClient(dynamoDbClient)
-                                                                 .build();
-   ```
-4. Create a DynamoDbTable object that you will use to repeatedly execute
-  operations against a specific table :-
-   ```java
-   // Maps a physical table with the name 'customers_20190205' to the schema
-   DynamoDbTable<Customer> customerTable = enhancedClient.table("customers_20190205", CUSTOMER_TABLE_SCHEMA);
-   ```
+3. Create a `DynamoDbEnhancedClient`
+   1. allows
+      1. executing operations -- against -- ALL your tables 
+      
+         ```java
+         DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                                                                       .dynamoDbClient(dynamoDbClient)
+                                                                       .build();
+         ```
+4. Create a `DynamoDbTable`
+   1. allows
+      1. executing operations -- against a -- SPECIFIC table
+      2. if the specific table does NOT ALREADY exist -> can be used | subsequent  `createTable()`
+      
+         ```java
+         // Maps a physical table with the name 'customers_20190205' to the schema 
+         DynamoDbTable<Customer> customerTable = enhancedClient.table("customers_20190205", CUSTOMER_TABLE_SCHEMA);
+         ```
 
-The name passed to the `table()` method above must match the name of a DynamoDB table if it already exists. 
-The DynamoDbTable object, customerTable, can now be used to perform the basic operations on the `customers_20190205` table. 
-If the table does not already exist, the name will be used as the DynamoDB table name on a subsequent `createTable()` method.
  
 ### Common primitive operations
-These all strongly map to the primitive DynamoDB operations they are
-named after. The examples below are the most simple variants of each
-operation possible. Each operation can be further customized by passing 
-in an enhanced request object. These enhanced request objects offer most 
-of the features available in the low-level DynamoDB SDK client and are
-fully documented in the Javadoc of the interfaces referenced in these examples.
 
-   ```java
+* THESE ALL -- strongly map to the -- primitive DynamoDB operations
+  * each operation -- can be customized, by passing in an -- enhanced request object
+    * enhanced request objects -- offer most of the -- features / available | low-level DynamoDB SDK client
+
+```java
    // CreateTable
    customerTable.createTable();
    
@@ -149,20 +149,25 @@ fully documented in the Javadoc of the interfaces referenced in these examples.
                                            .addUpdateItem(customerTable, customer)
                                            .addDeleteItem(customerTable, key));
 ```
+
    
 ### Using secondary indices
-Certain operations (Query and Scan) may be executed against a secondary
-index. Here's an example of how to do this:
-   ```java
-   DynamoDbIndex<Customer> customersByName = customerTable.index("customers_by_name");
+
+* uses
+  * for certain operations (Query and Scan)
+
+```java
+     DynamoDbIndex<Customer> customersByName = customerTable.index("customers_by_name");
        
-   SdkIterable<Page<Customer>> customersWithName = 
-       customersByName.query(r -> r.queryConditional(keyEqualTo(k -> k.partitionValue("Smith"))));
+     SdkIterable<Page<Customer>> customersWithName = 
+         customersByName.query(r -> r.queryConditional(keyEqualTo(k -> k.partitionValue("Smith"))));
    
-   PageIterable<Customer> pages = PageIterable.create(customersWithName);
-   ```
+     PageIterable<Customer> pages = PageIterable.create(customersWithName);
+```
 
 ### Working with immutable data classes
+
+* TODO:
 It is possible to have the DynamoDB Enhanced Client map directly to and from immutable data classes in Java. An
 immutable class is expected to only have getters and will also be associated with a separate builder class that
 is used to construct instances of the immutable data class. The DynamoDB annotation style for immutable classes is
