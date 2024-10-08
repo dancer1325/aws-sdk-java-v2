@@ -149,6 +149,7 @@
                                            .addUpdateItem(customerTable, customer)
                                            .addDeleteItem(customerTable, key));
 ```
+
  
 ### Using secondary indices
 
@@ -303,33 +304,42 @@ key differences:
    ```
 
 ## Using extensions
-The mapper supports plugin extensions to provide enhanced functionality
-beyond the simple primitive mapped operations. Extensions have two hooks, beforeWrite() and
-afterRead(); the former can modify a write operation before it happens,
-and the latter can modify the results of a read operation after it
-happens. Some operations such as UpdateItem perform both a write and
-then a read, so call both hooks.
 
-Extensions are loaded in the order they are specified in the enhanced client builder. This load order can be important,
-as one extension can be acting on values that have been transformed by a previous extension. The client comes with a set 
-of pre-written plugin extensions, located in the `/extensions` package. By default (See ExtensionResolver.java) the client loads some of them,
-such as VersionedRecordExtension; however, you can override this behavior on the client builder and load any
-extensions you like or specify none if you do not want the ones bundled by default.
+* supports
+  * plugin extensions / 
+    * 👁️provide enhanced functionality -- beyond the -- simple primitive mapped operations👁️
+    * hooks
+      * `beforeWrite()`
+        * allows
+          * modifying a write operation | before it happens
+      * `afterRead()`
+        * allows
+          * modifying the results of a read operation | after it happens
+    * some operations perform both a write and read -> call both hooks
+      * _Example:_ `UpdateItem`
+    * loaded -- based on the -- order / specified | enhanced client builder
+      * load order is important
+        * _Example:_ one extension -- can be acting on -- values / have been transformed by a previous extension
+    * built-in set of pre-written plugin extension | client
+      * located | `/extensions` package
+      * By default, the clients `ExtensionResolver.java` & `VersionedRecordExtension.java` load some of them
+        * it can be overridden | client builder
+* _Example:_ load a custom extension named 'verifyChecksumExtension' / after the `VersionedRecordExtension`
 
-In this example, a custom extension named 'verifyChecksumExtension' is being loaded after the VersionedRecordExtension
-which is usually loaded by default by itself:
-```java
-DynamoDbEnhancedClientExtension versionedRecordExtension = VersionedRecordExtension.builder().build();
-
-DynamoDbEnhancedClient enhancedClient = 
-    DynamoDbEnhancedClient.builder()
-                          .dynamoDbClient(dynamoDbClient)
-                          .extensions(versionedRecordExtension, verifyChecksumExtension)
-                          .build();
-```
+    ```java
+    // next is usually loaded by default by itself
+    DynamoDbEnhancedClientExtension versionedRecordExtension = VersionedRecordExtension.builder().build();
+    
+    DynamoDbEnhancedClient enhancedClient = 
+        DynamoDbEnhancedClient.builder()
+                              .dynamoDbClient(dynamoDbClient)
+                              .extensions(versionedRecordExtension, verifyChecksumExtension)
+                              .build();
+    ```
 
 ### VersionedRecordExtension
 
+* TODO:
 This extension is loaded by default and will increment and track a record version number as
 records are written to the database. A condition will be added to every
 write that will cause the write to fail if the record version number of
