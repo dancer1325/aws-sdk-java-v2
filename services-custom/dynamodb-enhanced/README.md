@@ -149,8 +149,7 @@
                                            .addUpdateItem(customerTable, customer)
                                            .addDeleteItem(customerTable, key));
 ```
-
-   
+ 
 ### Using secondary indices
 
 * uses
@@ -167,11 +166,19 @@
 
 ### Working with immutable data classes
 
-* TODO:
-It is possible to have the DynamoDB Enhanced Client map directly to and from immutable data classes in Java. An
-immutable class is expected to only have getters and will also be associated with a separate builder class that
-is used to construct instances of the immutable data class. The DynamoDB annotation style for immutable classes is
-very similar to bean classes :
+* DynamoDB Enhanced Client <- can map directly to and from -> immutable data classes | Java
+  * requirements of the immutable class  
+    * should ONLY
+      * have -- getters
+      * be associated with -- separate builder class /
+        * -- used to construct -- instances of the immutable data class
+    * ALL method | immutable class / is NOT an override of `Object.class` or annotated with `@DynamoDbIgnore` -- must be a -- getter for an attribute  
+    * ALL getter | immutable class -- must have a -- corresponding setter | builder class / has a case-sensitive matching name
+    * builder class -- must have a -- public default constructor OR public static method named 'builder' / takes NO parameters and returns an instance of the builder class | immutable class
+    * builder class -- must have a -- public method named 'build' / takes NO parameters and returns an instance of the immutable class
+  * `@DynamoDbImmutableThe` vs `@DynamoDbBean`
+    * == very similar
+
 
 ```java
 @DynamoDbImmutable(builder = Customer.Builder.class)
@@ -222,47 +229,44 @@ public class Customer {
 }
 ```
 
-The following requirements must be met for a class annotated with @DynamoDbImmutable:
-1. Every method on the immutable class that is not an override of Object.class or annotated with @DynamoDbIgnore must
-   be a getter for an attribute of the database record.
-1. Every getter in the immutable class must have a corresponding setter on the builder class that has a case-sensitive
-   matching name.
-1. EITHER: the builder class must have a public default constructor; OR: there must be a public static method named
-   'builder' on the immutable class that takes no parameters and returns an instance of the builder class.
-1. The builder class must have a public method named 'build' that takes no parameters and returns an instance of the
-   immutable class.
+* `TableSchema`
+  * if you want to create it / your immutable class -> use the `TableSchema.fromImmutableClass()`
 
-To create a TableSchema for your immutable class, use the static constructor method for immutable classes on TableSchema :
-
-```java
-static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA = TableSchema.fromImmutableClass(Customer.class);
-```
+   ```java
+   // static constructor
+   static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA = TableSchema.fromImmutableClass(Customer.class);
+   ```
    
-There are third-party library that help generate a lot of the boilerplate code associated with immutable objects.
-The DynamoDb Enhanced client should work with these libraries as long as they follow the conventions detailed
-in this section. Here's an example of the immutable Customer class using Lombok with DynamoDb annotations (note
-how Lombok's 'onMethod' feature is leveraged to copy the attribute based DynamoDb annotations onto the generated code):
+* some TP library
+  * allows
+    * generating a lot of the boilerplate code / -- associated with -- immutable objects
+  * requirements
+    * follow the previous conventions
+  * _Example:_ Lombok
 
-```java
-    @Value
-    @Builder
-    @DynamoDbImmutable(builder = Customer.CustomerBuilder.class)
-    public static class Customer {
-        @Getter(onMethod = @__({@DynamoDbPartitionKey}))
-        private String accountId;
-
-        @Getter(onMethod = @__({@DynamoDbSortKey}))
-        private int subId;  
-      
-        @Getter(onMethod = @__({@DynamoDbSecondaryPartitionKey(indexNames = "customers_by_name")}))
-        private String name;
-
-        @Getter(onMethod = @__({@DynamoDbSecondarySortKey(indexNames = {"customers_by_date", "customers_by_name"})}))
-        private Instant createdDate;
-    }
-```
+   ```java
+       @Value
+       @Builder
+       @DynamoDbImmutable(builder = Customer.CustomerBuilder.class)
+       public static class Customer {
+           // 'onMethod'  copy the attribute DynamoDb annotations | generated code
+           @Getter(onMethod = @__({@DynamoDbPartitionKey}))
+           private String accountId;
+   
+           @Getter(onMethod = @__({@DynamoDbSortKey}))
+           private int subId;  
+         
+           @Getter(onMethod = @__({@DynamoDbSecondaryPartitionKey(indexNames = "customers_by_name")}))
+           private String name;
+   
+           @Getter(onMethod = @__({@DynamoDbSecondarySortKey(indexNames = {"customers_by_date", "customers_by_name"})}))
+           private Instant createdDate;
+       }
+   ```
 
 ### Non-blocking asynchronous operations
+
+* TODO:
 If your application requires non-blocking asynchronous calls to
 DynamoDb, then you can use the asynchronous implementation of the
 mapper. It's very similar to the synchronous implementation with a few
