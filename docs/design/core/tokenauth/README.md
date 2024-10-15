@@ -4,51 +4,47 @@
 
 **What is Bearer Token authorization?**
 
-Bearer Token authorization is a method used to authenticate service request using 
-[Bearer Token](https://oauth.net/2/bearer-tokens/) instead of traditional AWS credentials .This is performed by 
-populating authorization header with bearer token.
+* := method / service request -- has -- [Bearer Token](https://oauth.net/2/bearer-tokens/)
+  * != traditional AWS credentials
+  * `-H authorization=BearerTokenValue`
+    * needed | request 
 
 **What is the user experience?**
 
-First, users will be able to configure a profile in the shared SDK configuration files that allows them to 
-perform an initial login via the AWS CLI or AWS IDE plugins. For example, this profile might look like this:
+* configure a profile | shared SDK "configuration" /
+  * allows
+    * performing an initial login -- via the -- AWS CLI or AWS IDE plugins
+  * _Example:_ let's have a "configuration"
+     ```
+     [profile sono]
+     sso_start_url = https://sono.aws
+     sso_region = us-east-1
+     ```
+     login -- via -- AWS CLI
+     ```
+     $ aws sso login --profile sono
+     ```
+* 👁️ once you log in -> cached token stored | `~/.aws/sso/cache` 👁️
+  * uses
+    * by the SDK -- to perform -- bearer token authorization 
 
- ```
- [profile sono]
- sso_start_url = https://sono.aws
- sso_region = us-east-1
- ```
+* service is modeled | service level -- to use the -- `bearer` signature version
+  * -> client -- would know how to --
+    * load the cached token -- based on the -- profile configuration
+    * populate the bearer authorization header
+  * == how an SDK -- would resolve AWS credentials & perform SigV4 signing
+    * _Example:_ given a token value of `"mF_9.B5f-4.1JqM"` -> full HTTP
+request may look like
 
-With this configuration, a user would be able to login via a supported tool such as the AWS CLI:
-
- ```
- $ aws sso login --profile sono
- ```
-
-Upon completing this login, a cached token will be available under
-`~/.aws/sso/cache` which will be used by the SDK to perform bearer token
-authorization. 
-
-The service will be modeled at the service level to use the `bearer`
-signature version. This client would know how to load the cached token based on the
-profile configuration and populate the bearer authorization header using it.
-This is similar to how an SDK would resolve AWS credentials and perform SigV4
-signing.
-
-*Example*
-
-For example, given a token value of `"mF_9.B5f-4.1JqM"` the value of the
-`Authorization` header would be: `"Bearer mF_9.B5f-4.1JqM"`. A full HTTP
-request may look like the following:
-
- ```
- GET /resource HTTP/1.1
- Host: server.example.com
- Authorization: Bearer mF_9.B5f-4.1JqM
- ```
+     ```
+     GET /resource HTTP/1.1
+     Host: server.example.com
+     Authorization: Bearer mF_9.B5f-4.1JqM
+     ```
 
 ## Proposed APIs
 
+* TODO:
 When the SDK 2.x client encounters a service or operation that is modeled or configured to use the 
 `bearer` signature version, the client will consult the token provider chain to 
 derive a token to be used in generating and attaching the authorization to a request.
